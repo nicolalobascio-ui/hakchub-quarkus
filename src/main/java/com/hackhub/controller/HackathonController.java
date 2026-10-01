@@ -3,6 +3,9 @@ package com.hackhub.controller;
 import com.hackhub.entity.Hackathon;
 import com.hackhub.services.HackathonService;
 import com.hackhub.services.HackathonSubscriptionService;
+
+import io.quarkus.security.Authenticated;
+import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -27,6 +30,7 @@ public class HackathonController {
     // GET /api/hackathons/me/subscription - Hackathon a cui sono iscritto (se presente)
     @GET
     @Path("/me/subscription")
+    @Authenticated
     public Response getMySubscription() {
         return subscriptionService.getMySubscribedHackathon(securityContext.getUserPrincipal().getName())
         .map(h -> Response.ok(h).build())
@@ -36,6 +40,7 @@ public class HackathonController {
     // POST /api/hackathons/{id}/subscription - Toggle iscrizione/disiscrizione
     @POST
     @Path("/{id}/subscription")
+    @Authenticated 
     public Response toggleSubscription(@PathParam("id") Long id) {
         HackathonSubscriptionService.ToggleResult result =
                 subscriptionService.toggleSubscription(securityContext.getUserPrincipal().getName(), id);
@@ -50,6 +55,7 @@ public class HackathonController {
 
     // GET /hackathons - Lista tutti gli hackathon
     @GET
+    @PermitAll 
     public List<Hackathon> getAllHackathons() {
         return hackathonService.listAll();
     }
@@ -57,6 +63,7 @@ public class HackathonController {
     // GET /hackathons/{id} - Dettaglio hackathon
     @GET
     @Path("/{id}")
+    @PermitAll
     public Response getHackathonById(@PathParam("id") Long id) {
         Hackathon hackathon = hackathonService.findById(id);
         if (hackathon != null) {
