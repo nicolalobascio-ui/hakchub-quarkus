@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
+import java.util.Optional;
 
 @ApplicationScoped
 public class JwtUtils {
@@ -24,10 +25,10 @@ public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     @ConfigProperty(name = "hackhub.app.jwtSecretBase64", defaultValue = "")
-    private String jwtSecretBase64;
+    private Optional<String> jwtSecretBase64;
 
     @ConfigProperty(name = "hackhub.app.jwtSecret", defaultValue = "")
-    private String jwtSecret;
+    private Optional<String> jwtSecret;
 
     @ConfigProperty(name = "hackhub.app.jwtIssuer", defaultValue = "HackHub")
     private String jwtIssuer;
@@ -51,9 +52,9 @@ public class JwtUtils {
             }
         }
 
-        if (jwtSecretBase64 != null && !jwtSecretBase64.isBlank()) {
+        if (jwtSecretBase64 != null && !jwtSecretBase64.get().isBlank()) {
             try {
-                byte[] keyBytes = Decoders.BASE64.decode(jwtSecretBase64);
+                byte[] keyBytes = Decoders.BASE64.decode(jwtSecretBase64.get());
                 if (keyBytes.length < 32) throw new IllegalStateException("JWT secret (decoded) is too short: must be at least 32 bytes for HS256");
                 return Keys.hmacShaKeyFor(keyBytes);
             } catch (IllegalArgumentException e) {
@@ -82,8 +83,8 @@ public class JwtUtils {
             }
         }
 
-        if (jwtSecret != null && !jwtSecret.isBlank()) {
-            byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (jwtSecret != null && !jwtSecret.get().isBlank()) {
+            byte[] keyBytes = jwtSecret.get().getBytes(StandardCharsets.UTF_8);
             if (keyBytes.length < 32) {
                 throw new IllegalStateException("JWT secret in application.properties is too short: must be at least 32 bytes (use a longer secret or base64-encoded one)");
             }
