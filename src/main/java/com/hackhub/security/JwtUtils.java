@@ -101,7 +101,7 @@ public class JwtUtils {
     
     private static SecretKey tempKey = null;
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + jwtExpirationMs);
 
@@ -110,6 +110,7 @@ public class JwtUtils {
                 .setSubject(username)
                 .setIssuer(jwtIssuer)
                 .setIssuedAt(now)
+                .claim("groups", java.util.List.of(role))
                 .setExpiration(exp)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
