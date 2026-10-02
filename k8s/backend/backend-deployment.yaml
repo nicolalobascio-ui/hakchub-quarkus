@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hackhub-backend-quarkus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hackhub-backend-quarkus
+  template:
+    metadata:
+      labels:
+        app: hackhub-backend-quarkus
+    spec:
+      containers:
+      - name: hackhub-backend
+        image: hackhub-backend-quarkus:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        # Regola la memoria JVM per istanze con poca RAM
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Xmx512m -Xms256m"
+        
+        # Legge il JWT Secret da Kubernetes
+        - name: HACKHUB_APP_JWTSECRETBASE64
+          valueFrom:
+            secretKeyRef:
+              name: quarkus-backend-secrets
+              key: HACKHUB_APP_JWTSECRETBASE64
+        
+        - name: SMALLRYE_JWT_VERIFY_SECRETKEY
+          valueFrom:
+            secretKeyRef:
+              name: quarkus-backend-secrets
+              key: SMALLRYE_JWT_VERIFY_SECRETKEY
+        
+        # Connessione DB
+        - name: QUARKUS_DATASOURCE_JDBC_URL
+          value: "jdbc:postgresql://postgres:5432/hackhub_db"
+        - name: QUARKUS_DATASOURCE_USERNAME
+          value: "admin"
+        - name: QUARKUS_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
